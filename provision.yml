@@ -1,0 +1,13 @@
+---
+- hosts: all
+  roles:
+    - common
+    - docker
+
+- hosts: etcd
+  roles:
+    - etcd
+
+- hosts: vtctld
+  roles:
+    - vtctld

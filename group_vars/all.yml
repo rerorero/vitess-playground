@@ -1,0 +1,12 @@
+---
+resolved_ips:
+  192.168.50.11:
+    names: [vitess1]
+  192.168.50.12:
+    names: [vitess2]
+  192.168.50.13:
+    names: [vitess3]
+
+systemd_service_dir: "/lib/systemd/system"
+
+etcd_initial_cluster_hosts: "{{ groups['etcd'] }}"

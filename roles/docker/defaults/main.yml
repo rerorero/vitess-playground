@@ -1,0 +1,5 @@
+---
+docker_version: "17.03.0~ce-0~ubuntu-{{ ansible_lsb.codename }}"
+docker_repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
+docker_uid: 3020
+docker_gid: 3020

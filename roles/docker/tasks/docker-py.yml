@@ -1,0 +1,14 @@
+---
+# Remote host needs docker-py installed if we use docker_container module
+# https://github.com/ansible/ansible-modules-core/issues/4246
+- name: 'Install pip'
+  apt:
+    name: python-pip
+    state: present
+  become: yes
+
+- name: Install docker-py
+  pip:
+    name: docker-py
+    state: present
+  become: yes

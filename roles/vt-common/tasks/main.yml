@@ -1,0 +1,35 @@
+---
+- name: Create vitess group
+  group:
+    name: vitess
+    gid: "{{ vt_gid }}"
+    state: present
+  become: yes
+
+- name: Create vitess user
+  user:
+    name: vitess
+    group: vitess
+    uid: "{{ vt_uid }}"
+    state: present
+  become: yes
+
+- name: Set etcd addresses var(iterate)
+  set_fact: 
+    etcd_addr: "http://{{ hostvars[item]['ansible_host'] }}:2379"
+  with_items: "{{ etcd_initial_cluster_hosts }}"
+  register: etcd_addrs
+
+- name: Set etcd addresses var(iterate)
+  set_fact: vt_etcd_addrs="{{ etcd_addrs.results | map(attribute='ansible_facts.etcd_addr') | list }}"
+
+- name: Create vitess directories
+  file:
+    path: "{{ item }}"
+    owner: vitess
+    group: vitess
+    state: directory
+    mode: 0755
+  with_items:
+    - "{{ vt_dir }}"
+  become: yes
