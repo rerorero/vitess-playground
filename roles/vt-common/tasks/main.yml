@@ -2,7 +2,7 @@
 - name: Create vitess group
   group:
     name: vitess
-    gid: "{{ vt_gid }}"
+    gid: "{{ vt_group_id }}"
     state: present
   become: yes
 
@@ -10,18 +10,9 @@
   user:
     name: vitess
     group: vitess
-    uid: "{{ vt_uid }}"
+    uid: "{{ vt_user_id }}"
     state: present
   become: yes
-
-- name: Set etcd addresses var(iterate)
-  set_fact: 
-    etcd_addr: "http://{{ hostvars[item]['ansible_host'] }}:2379"
-  with_items: "{{ etcd_initial_cluster_hosts }}"
-  register: etcd_addrs
-
-- name: Set etcd addresses var(iterate)
-  set_fact: vt_etcd_addrs="{{ etcd_addrs.results | map(attribute='ansible_facts.etcd_addr') | list }}"
 
 - name: Create vitess directories
   file:
@@ -33,3 +24,17 @@
   with_items:
     - "{{ vt_dir }}"
   become: yes
+
+- name: Set etcd addresses var(iterate)
+  set_fact: 
+    etcd_addr: "http://{{ hostvars[item]['ansible_host'] }}:{{ etcd_advertise_port }}"
+  with_items: "{{ etcd_initial_cluster_hosts }}"
+  register: etcd_addrs
+
+- name: Set etcd addresses var(iterate)
+  set_fact: vt_etcd_addrs="{{ etcd_addrs.results | map(attribute='ansible_facts.etcd_addr') | list }}"
+
+  # TODO: Point to a loadbalancer endpoint.
+- name: Put vitess configure into etcd
+  command: "curl {{ vt_etcd_addrs[0] }}/v2/keys/vt/cells/{{ vt_cell }} -XPUT -d value='{{ vt_etcd_addrs[0] }}'"
+  run_once: true

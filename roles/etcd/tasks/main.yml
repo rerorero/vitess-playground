@@ -1,84 +1,30 @@
 ---
-- name: Create etcd group
-  group:
-    name: etcd
-    gid: "{{ etcd_gid }}"
-    state: present
-  become: yes
-
-- name: Create etcd user
-  user:
-    name: etcd
-    group: etcd
-    uid: "{{ etcd_uid }}"
-    state: present
-  become: yes
-
-- name: Create conf directory
-  file:
-    path: "{{ etcd_conf_dir }}"
-    owner: etcd
-    group: etcd
-    state: directory
-    mode: 0755
-  become: yes
-
 - name: Create etcd directories
   file:
     path: "{{ item }}"
-    owner: etcd
-    group: etcd
     state: directory
     mode: 0755
   with_items:
     - "{{ etcd_data_dir }}"
     - "{{ etcd_conf_dir }}"
-    - "/opt/etcd-{{ etcd_version }}"
   become: yes
 
-- name: Unarchive etcd package
-  unarchive:
-    src: "{{ etcd_package_url }}"
-    dest: "/opt/etcd-{{ etcd_version }}"
-    owner: etcd
-    group: etcd
-    mode: 0755
-    remote_src: True
-  become: yes
-
-- name: Create links of bins
-  file:
-    src: "/opt/etcd-{{ etcd_version }}/{{ etcd_pkg_name }}/{{ item }}"
-    path: "{{ etcd_bin_dir }}/{{ item }}"
-    state: link
-  with_items:
-    - etcd
-    - etcdctl
-  become: yes
-
-- name: Create conf file
+- name: Put etcd conf
   template:
     src: etcd.yml.j2
     dest: "{{ etcd_conf_dir }}/etcd.yml"
-    owner: etcd
-    group: etcd
     mode: 0644
   become: yes
-  notify:
-    - Restart etcd
 
-- name: Setup etcd service
-  template:
-    src: etcd.service.j2
-    dest: "{{ systemd_service_dir }}/etcd.service"
-    owner: root
-    group: root
-    mode: 0755
-  become: yes
-  notify:
-    - Reload systemd
-    - Restart etcd
-
-- name: Enables etcd service
-  service: name=etcd state=started enabled=yes
-  become: yes
+- name: Start etcd
+  docker_container:
+    name: etcd
+    image: "{{ etcd_docker_tag }}"
+    state: started
+    ports:
+      - "{{ etcd_advertise_port }}:2379"
+      - "2380:2380"
+    volumes:
+      - "{{ etcd_data_dir }}:{{ etcd_data_dir }}"
+      - "{{ etcd_conf_dir }}:{{ etcd_conf_dir }}"
+    command: "etcd --config-file {{ etcd_conf_dir }}/etcd.yml" 

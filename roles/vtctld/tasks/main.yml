@@ -18,6 +18,7 @@
     image: "{{ vt_docker_tag }}"
     state: started
     network_mode: host
+    hostname: "{{ inventory_hostname }}"
     ports:
       - "{{ vtctld_web_port }}:15000"
       - "{{ vtctld_grpc_port }}:15999"

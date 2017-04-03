@@ -1,0 +1,2 @@
+Ansible>=2.2.0
+docker-py>=1.7.0

@@ -1,7 +1,4 @@
 ---
-vtctld_web_port: 15000
-vtctld_grpc_port: 15999
-
 vtctld_dir: "{{ vt_dir }}/vtctld"
 vtctld_syslog_dir: "{{ vtctld_dir }}/syslog"
 vtctld_data_dir: "{{ vtctld_dir }}/data"

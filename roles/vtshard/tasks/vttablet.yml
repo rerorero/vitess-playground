@@ -1,0 +1,122 @@
+---
+  # Reiquired vars
+  # vt_uid
+  # vt_keyspace
+  # vt_shard
+  # vt_tablet_type
+  # vt_deploy_host => TODO: replaced by using k8s or swarm
+  # vttablet_alias
+- name: Put variables
+  set_fact:
+    vttablet_dir: "{{ vt_dir }}/vttablet-{{ vttablet_alias }}"
+    vttablet_port: "{{ 15000 + (vt_uid | int) }}"
+    vttablet_grpc_port: "{{ 16000 + (vt_uid | int) }}"
+    vttablet_mysql_port: "{{ 17000 + (vt_uid | int) }}"
+
+- name: Put variables2
+  set_fact:
+    vttablet_syslog_dir: "{{ vttablet_dir }}/syslog"
+    vttablet_data_dir: "{{ vttablet_dir }}/data"
+
+- name: Create required directories1
+  file: path="{{ vttablet_dir }}" owner=vitess group=vitess state=directory mode=0755
+  become: yes
+
+- name: Create required directories2
+  file: path="{{ vttablet_syslog_dir }}" owner=vitess group=vitess state=directory mode=0755
+  become: yes
+
+- name: Create required directories3
+  file: path="{{ vttablet_data_dir }}" owner=vitess group=vitess state=directory mode=0755
+  become: yes
+
+- name: Start mysql
+  docker_container:
+    name: "mysql-{{ vttablet_alias }}"
+    image: "{{ vt_docker_tag }}"
+    state: started
+    network_mode: host
+    hostname: "{{ vt_deploy_host }}"
+    ports:
+      - "{{ vttablet_mysql_port }}:{{ vttablet_mysql_port }}"
+    volumes:
+      - "{{ vttablet_syslog_dir }}:/dev/log"
+      - "{{ vttablet_data_dir }}:{{ vt_env_vtdataroot }}"
+    env:
+      EXTRA_MY_CNF: "{{ vt_env_vtroot }}/config/mycnf/master_mysql56.cnf"
+    command: >-
+      /bin/sh -c
+      'mkdir -p $VTDATAROOT/tmp &&
+      mkdir -p $VTDATAROOT/backups &&
+      chown -R vitess $VTROOT &&
+      su -p -c "/vt/bin/mysqlctld
+      -log_dir $VTDATAROOT/tmp
+      -alsologtostderr
+      -tablet_uid {{ vt_uid }}
+      -socket_file $VTDATAROOT/mysqlctl.sock
+      -db-config-app-uname vt_app
+      -db-config-app-dbname vt_{{ vt_keyspace }}
+      -db-config-app-charset utf8
+      -db-config-dba-uname vt_dba
+      -db-config-dba-dbname vt_{{vt_keyspace}}
+      -db-config-dba-charset utf8
+      -db-config-repl-uname vt_repl
+      -db-config-repl-dbname vt_{{ vt_keyspace }}
+      -db-config-repl-charset utf8
+      -db-config-filtered-uname vt_filtered
+      -db-config-filtered-dbname vt_{{ vt_keyspace }}
+      -db-config-filtered-charset utf8
+      -mysql_port {{ vttablet_mysql_port }}
+      -init_db_sql_file $VTROOT/config/init_db.sql" vitess'
+
+- name: Start vttablet
+  docker_container:
+    name: "vttablet{{ vttablet_alias }}"
+    image: "{{ vt_docker_tag }}"
+    state: started
+    network_mode: host
+    hostname: "{{ vt_deploy_host }}"
+    ports:
+      - "{{ vttablet_port }}:{{ vttablet_port }}"
+    volumes:
+      - "{{ vttablet_syslog_dir }}:/dev/log"
+      - "{{ vttablet_data_dir }}:{{ vt_env_vtdataroot }}"
+    command: >-
+      /bin/sh -c
+      'mkdir -p $VTDATAROOT/tmp &&
+      chown -R vitess $VTROOT &&
+      su -p -s /bin/bash -c "$VTROOT/bin/vttablet
+      {{ vt_env_topology_flags | join(' ')}}
+      -log_dir $VTDATAROOT/tmp
+      -alsologtostderr
+      -port {{ vttablet_port }}
+      -grpc_port {{ vttablet_grpc_port }}
+      -service_map 'grpc-queryservice,grpc-tabletmanager,grpc-updatestream'
+      -tablet-path {{ vttablet_alias }}
+      -tablet_hostname $(hostname -i)
+      -init_keyspace {{ vt_keyspace }}
+      -init_shard {{ vt_shard }}
+      -init_tablet_type {{ vt_tablet_type }}
+      -health_check_interval 5s
+      -mysqlctl_socket $VTDATAROOT/mysqlctl.sock
+      -db-config-app-uname vt_app
+      -db-config-app-dbname vt_{{ vt_keyspace }}
+      -db-config-app-charset utf8
+      -db-config-dba-uname vt_dba
+      -db-config-dba-dbname vt_{{ vt_keyspace }}
+      -db-config-dba-charset utf8
+      -db-config-repl-uname vt_repl
+      -db-config-repl-dbname vt_{{ vt_keyspace }}
+      -db-config-repl-charset utf8
+      -db-config-filtered-uname vt_filtered
+      -db-config-filtered-dbname vt_{{ vt_keyspace }}
+      -db-config-filtered-charset utf8
+      -enable_semi_sync
+      -enable_replication_reporter
+      -backup_storage_implementation file
+      -file_backup_storage_root $VTDATAROOT/backups" vitess'
+
+
+      # TODO: orchestorator setting
+      #-orc_api_url http://orchestrator/api
+      #-orc_discover_interval 5m

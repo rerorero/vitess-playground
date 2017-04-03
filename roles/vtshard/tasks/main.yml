@@ -1,0 +1,13 @@
+---
+- include: vttablet.yml
+  delegate_to: "{{ item.host }}"
+  vars:
+    - vt_uid: "{{ item.uid }}"
+    - vt_keyspace: "{{ vtshard_info.keyspace }}"
+    - vt_shard: "{{ vtshard_info.shard }}"
+    - vt_tablet_type: "{{ item.type }}"
+    - vt_deploy_host: "{{ item.host }}"
+    - vttablet_alias: "{{ vt_cell }}-{{ item.uid }}"
+  with_items: "{{ vtshard_info.tablets }}"
+
+- include: init.yml

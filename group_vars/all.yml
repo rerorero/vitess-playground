@@ -9,4 +9,14 @@ resolved_ips:
 
 systemd_service_dir: "/lib/systemd/system"
 
+etcd_advertise_port: 2379
 etcd_initial_cluster_hosts: "{{ groups['etcd'] }}"
+
+go_path: "/var/go"
+go_path_env:
+  GOPATH: "{{ go_path }}"
+
+vtctld_web_port: 15000
+vtctld_grpc_port: 15999
+
+vt_cell: test

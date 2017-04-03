@@ -1,4 +1,9 @@
 ---
+- name: Set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+  become: yes
+
 - name: Configure /etc/hosts
   template:
     src: hosts.j2

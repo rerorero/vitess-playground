@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec {{ go_path }}/bin/vtctlclient -server localhost:{{ vtctld_grpc_port }} "$@"

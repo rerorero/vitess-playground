@@ -8,6 +8,11 @@
   roles:
     - etcd
 
-- hosts: vtctld
+- hosts: vtnode
+  roles:
+    - vt-common
+
+- hosts: vt-ope
   roles:
     - vtctld
+    - vtctlclient

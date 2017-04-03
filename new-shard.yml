@@ -1,0 +1,17 @@
+---
+- hosts: vt-ope
+  run_once: true
+  vars:
+    - vtshard_info:
+        keyspace: test_keyspace
+        shard: 0
+        master_uid: 101
+        tablets:
+          - { uid: 101, host: "vitess1", type: "replica" }
+          - { uid: 102, host: "vitess2", type: "replica" }
+          - { uid: 103, host: "vitess3", type: "replica" }
+          - { uid: 104, host: "vitess2", type: "rdonly"  }
+          - { uid: 105, host: "vitess3", type: "rdonly"  }
+  roles:
+    - vtshard
+

@@ -37,11 +37,11 @@ cors:
 
 # List of this member's peer URLs to advertise to the rest of the cluster.
 # The URLs needed to be a comma-separated list.
-initial-advertise-peer-urls: http://{{ inventory_hostname }}:2380
+initial-advertise-peer-urls: http://{{ ansible_host }}:2380
 
 # List of this member's client URLs to advertise to the public.
 # The URLs needed to be a comma-separated list.
-advertise-client-urls: http://0.0.0.0:2379
+advertise-client-urls: http://{{ ansible_host }}:2379
 
 # Discovery URL used to bootstrap the cluster.
 discovery: 
@@ -58,7 +58,7 @@ discovery-srv:
 # Initial cluster configuration for bootstrapping.
 {% set clusters = [] %}
 {% for cluster_host in etcd_initial_cluster_hosts %}
-{% set _ = clusters.append(cluster_host + '=http://' + cluster_host + ':2380') %}
+{% set _ = clusters.append(cluster_host + '=http://' + hostvars[cluster_host]['ansible_host'] + ':2380') %}
 {% endfor %}
 
 initial-cluster: {{ clusters | join(',') }}

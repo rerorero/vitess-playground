@@ -1,0 +1,18 @@
+---
+- name: Add golang repo
+  command: add-apt-repository ppa:longsleep/golang-backports
+  become: yes
+
+- name: Install golang
+  apt:
+    name: golang-go
+    state: present
+  become: yes
+
+- name: make GOPATH directory
+  file:
+    path: "{{ go_path }}"
+    state: directory
+    mode: 0755
+    owner: "{{ ansible_ssh_user }}"
+  become: yes

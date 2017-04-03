@@ -1,6 +1,6 @@
 ---
-vt_uid: 3030
-vt_gid: 3030
+vt_user_id: 3030
+vt_group_id: 3030
 
 vt_vitess_version: v2.0.0
 vt_docker_tag: "vitess/lite:{{ vt_vitess_version }}"
@@ -12,3 +12,4 @@ vt_env_topology_flags:
   - "-etcd_global_addrs {{ vt_etcd_addrs | join(',') }}"
 
 vt_dir: /var/vt
+

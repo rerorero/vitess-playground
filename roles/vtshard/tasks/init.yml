@@ -1,0 +1,10 @@
+---
+  # TODO: check if already initialized or not
+- name: Initialize shard (elect master)
+  command: "lvtctl InitShardMaster -force {{ vtshard_info.keyspace }}/{{ vtshard_info.shard }} {{ vt_cell }}-{{ vtshard_info.master_uid }}"
+
+- name: List all tablets
+  command: "lvtctl ListAllTablets {{ vt_cell }}"
+  register: list_result
+
+- debug: msg="{{ list_result.stdout_lines }}"
