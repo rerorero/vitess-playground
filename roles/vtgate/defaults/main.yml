@@ -1,0 +1,4 @@
+---
+vtgate_dir: "{{ vt_dir }}/vtgate"
+vtgate_syslog_dir: "{{ vtgate_dir }}/syslog"
+vtgate_data_dir: "{{ vtgate_dir }}/data"

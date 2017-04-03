@@ -16,3 +16,7 @@
   roles:
     - vtctld
     - vtctlclient
+
+- hosts: vtgate
+  roles:
+    - vtgate

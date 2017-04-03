@@ -1,0 +1,42 @@
+---
+- name: Create required directories
+  file:
+    path: "{{ item }}"
+    owner: vitess
+    group: vitess
+    state: directory
+    mode: 0755
+  with_items:
+    - "{{ vtgate_dir }}"
+    - "{{ vtgate_syslog_dir }}"
+    - "{{ vtgate_data_dir }}"
+  become: yes
+
+- name: Start vtgate
+  docker_container:
+    name: vtgate
+    image: "{{ vt_docker_tag }}"
+    state: started
+    network_mode: host
+    hostname: "{{ inventory_hostname }}"
+    ports:
+      - "{{ vtgate_web_port }}:15001"
+      - "{{ vtgate_grpc_port }}:15991"
+    volumes:
+      - "{{ vtgate_syslog_dir }}:/dev/log"
+      - "{{ vtgate_data_dir }}:{{ vt_env_vtdataroot }}"
+    command: >-
+      /bin/sh -c
+      'mkdir -p $VTDATAROOT/tmp &&
+      chown -R vitess /vt &&
+      su -p -c "$VTROOT/bin/vtgate
+      {{ vt_env_topology_flags | join(' ')}}
+      -log_dir $VTDATAROOT/tmp
+      -alsologtostderr
+      -port 15001
+      -grpc_port 15991
+      -service_map grpc-vtgateservice
+      -cells_to_watch {{ vt_cell }}
+      -tablet_types_to_wait MASTER,REPLICA
+      -gateway_implementation discoverygateway
+      -cell {{ vt_cell }}" vitess'

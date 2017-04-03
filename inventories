@@ -10,14 +10,14 @@ vitess3
 [vt-ope]
 vitess1
 
-[vtshard1]
+[vtnode]
 vitess1
 vitess2
 vitess3
 
-[vtnode:children]
-vt-ope
-vtshard1
+[vtgate]
+vitess2
+vitess3
 
 [all:vars]
 ansible_ssh_user=vagrant

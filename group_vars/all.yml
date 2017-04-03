@@ -19,4 +19,7 @@ go_path_env:
 vtctld_web_port: 15000
 vtctld_grpc_port: 15999
 
+vtgate_web_port: 15001
+vtgate_grpc_port: 15991
+
 vt_cell: test
