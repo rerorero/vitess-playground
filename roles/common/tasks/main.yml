@@ -21,3 +21,4 @@
   with_items:
     - jq
     - iptables-persistent
+    - mysql-client-5.7

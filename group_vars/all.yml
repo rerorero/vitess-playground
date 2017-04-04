@@ -22,4 +22,8 @@ vtctld_grpc_port: 15999
 vtgate_web_port: 15001
 vtgate_grpc_port: 15991
 
+
+vt_dir: /var/vt
 vt_cell: test
+
+docker_compose_dir: /etc/docker-compose

@@ -1,5 +1,5 @@
 ---
-- hosts: vt-ope
+- hosts: manage
   run_once: true
   vars:
     - vtshard_info:

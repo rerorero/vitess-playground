@@ -55,4 +55,18 @@
     append: yes
   become: yes
 
-- include: docker-py.yml
+- name: Create compose directory
+  file:
+    path: "{{ docker_compose_dir }}"
+    state: directory
+    mode: 0755
+    owner: docker
+    group: docker
+  become: yes
+
+- name: Get compose binary
+  get_url:
+    url: "{{ compose_package_url }}"
+    dest: /usr/local/bin/docker-compose
+    mode: 0755
+  become: yes

@@ -7,7 +7,7 @@ vitess1
 vitess2
 vitess3
 
-[vt-ope]
+[manage]
 vitess1
 
 [vtnode]

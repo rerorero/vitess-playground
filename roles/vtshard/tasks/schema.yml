@@ -1,0 +1,21 @@
+---
+- name: Put table schema
+  template:
+    src: "schema/{{ item }}.j2"
+    dest: "{{ vt_dir }}/{{ item }}"
+    owner: vitess
+    group: vitess 
+    mode: 0644
+  with_items:
+    - messages.sql
+    - records.sql
+  become: yes
+
+- name: Initialize table schema
+  shell: "lvtctl ApplySchema -sql \"$(cat {{ vt_dir }}/{{ item }})\" {{ vtshard_info.keyspace }}"
+  with_items:
+    - messages.sql
+    - records.sql
+
+- name: Initialize VSchema
+  command: "lvtctl RebuildVSchemaGraph"

@@ -1,0 +1,30 @@
+version: '3'
+services:
+  vtctld:
+    image: "{{ vt_docker_tag }}"
+    network_mode: host
+    hostname: "{{ inventory_hostname }}"
+    ports:
+      - "{{ vtctld_web_port }}:15000"
+      - "{{ vtctld_grpc_port }}:15999"
+    volumes:
+      - "{{ vtctld_syslog_dir }}:/dev/log"
+      - "{{ vtctld_data_dir }}:{{ vt_env_vtdataroot }}"
+    environment:
+      VTROOT: "{{ vt_env_vtroot }}"
+      VTTOP: "{{ vt_env_vttop }}"
+      VTDATAROOT: "{{ vt_env_vtdataroot }}"
+    command: >-
+      /bin/sh -c
+      'mkdir -p {{ vt_env_vtdataroot }}/tmp &&
+      mkdir -p {{ vt_env_vtdataroot }}/backups &&
+      chown -R vitess {{ vt_env_vtroot }} &&
+      su -p -c "{{ vt_env_vtroot }}/bin/vtctld
+      -web_dir {{ vt_env_vttop }}/web/vtctld
+      -log_dir {{ vt_env_vtdataroot }}/tmp
+      -alsologtostderr
+      -port 15000
+      -grpc_port 15999
+      -service_map grpc-vtctl
+      {{ vt_env_topology_flags | join(' ')}}
+      -file_backup_storage_root {{ vt_env_vtdataroot }}/backups" vitess'

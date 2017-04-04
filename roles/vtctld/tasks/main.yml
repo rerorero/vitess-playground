@@ -10,32 +10,17 @@
     - "{{ vtctld_dir }}"
     - "{{ vtctld_syslog_dir }}"
     - "{{ vtctld_data_dir }}"
+    - "{{ docker_compose_dir }}/vtctld"
   become: yes
 
-- name: Start vtctld
-  docker_container:
-    name: vtctld
-    image: "{{ vt_docker_tag }}"
-    state: started
-    network_mode: host
-    hostname: "{{ inventory_hostname }}"
-    ports:
-      - "{{ vtctld_web_port }}:15000"
-      - "{{ vtctld_grpc_port }}:15999"
-    volumes:
-      - "{{ vtctld_syslog_dir }}:/dev/log"
-      - "{{ vtctld_data_dir }}:{{ vt_env_vtdataroot }}"
-    command: >-
-      /bin/sh -c
-      'mkdir -p $VTDATAROOT/tmp &&
-      mkdir -p $VTDATAROOT/backups &&
-      chown -R vitess $VTROOT &&
-      su -p -c "$VTROOT/bin/vtctld
-      -web_dir $VTTOP/web/vtctld
-      -log_dir $VTDATAROOT/tmp
-      -alsologtostderr
-      -port 15000
-      -grpc_port 15999
-      -service_map grpc-vtctl
-      {{ vt_env_topology_flags | join(' ')}}
-      -file_backup_storage_root $VTDATAROOT/backups" vitess'
+- name: Put vtctld compose yml
+  template:
+    src: vtctld-compose.yml.j2
+    dest: "{{ docker_compose_dir }}/vtctld/docker-compose.yml"
+    mode: 0644
+  become: yes
+
+- name: Compose vtctld service up
+  args:
+    chdir: "{{ docker_compose_dir }}/vtctld"
+  command: docker-compose up -d

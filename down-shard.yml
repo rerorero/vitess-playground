@@ -1,0 +1,42 @@
+---
+- hosts: vtnode
+  vars:
+    keyspace: test_keyspace
+    shard: 0
+  tasks:
+    - name: Find services
+      find:
+        paths: "{{ docker_compose_dir }}"
+        patterns: "vttablet-*"
+        file_type: directory
+      register: services
+
+    - name: Down all vttablet services
+      args:
+        chdir: "{{ item.path }}"
+      command: docker-compose down
+      with_items: "{{ services.files }}"
+
+    - name: Delete shard
+      delegate_to: "{{ groups['manage'][0] }}"
+      run_once: true
+      command: "lvtctl DeleteShard -recursive {{ keyspace }}/{{ shard }}"
+
+    - name: Initialize VSchema
+      delegate_to: "{{ groups['manage'][0] }}"
+      run_once: true
+      command: "lvtctl RebuildVSchemaGraph"
+
+    - name: Find data directories
+      find:
+        paths: "{{ vt_dir }}"
+        patterns: "vttablet-*"
+        file_type: directory
+      register: datas
+
+    - name: Delete data directories
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ datas.files }}"
+      become: yes

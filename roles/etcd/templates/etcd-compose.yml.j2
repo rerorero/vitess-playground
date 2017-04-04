@@ -1,0 +1,12 @@
+version: '3'
+services:
+  etcd:
+    image: "{{ etcd_docker_tag }}"
+    hostname: "{{ inventory_hostname }}"
+    ports:
+      - "{{ etcd_advertise_port }}:2379"
+      - "2380:2380"
+    volumes:
+      - "{{ etcd_data_dir }}:{{ etcd_data_dir }}"
+      - "{{ etcd_conf_dir }}:{{ etcd_conf_dir }}"
+    command: "etcd --config-file {{ etcd_conf_dir }}/etcd.yml" 

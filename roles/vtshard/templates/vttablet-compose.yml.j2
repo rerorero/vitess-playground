@@ -1,0 +1,94 @@
+version: '3'
+services:
+  mysql:
+    image: {{ vt_docker_tag }}
+    network_mode: host
+    hostname: {{ vt_deploy_host }}
+    ports:
+      - "{{ vttablet_mysql_port }}:{{ vttablet_mysql_port }}"
+    volumes:
+      - "{{ vttablet_syslog_dir }}:/dev/log"
+      - "{{ vttablet_data_dir }}:{{ vt_env_vtdataroot }}"
+    environment:
+      EXTRA_MY_CNF: "{{ vt_env_vtroot }}/config/mycnf/master_mysql56.cnf:{{ vt_env_vtdataroot }}/additional.my.cnf"
+      VTROOT: "{{ vt_env_vtroot }}"
+      VTTOP: "{{ vt_env_vttop }}"
+      VTDATAROOT: "{{ vt_env_vtdataroot }}"
+    command: >-
+      /bin/sh -c
+      'mkdir -p {{ vt_env_vtdataroot }}/tmp &&
+      mkdir -p {{ vt_env_vtdataroot }}/backups &&
+      chown -R vitess {{ vt_env_vtroot }} &&
+      su -p -c "/vt/bin/mysqlctld
+      -log_dir {{ vt_env_vtdataroot }}/tmp
+      -alsologtostderr
+      -tablet_uid {{ vt_uid }}
+      -socket_file {{ vt_env_vtdataroot }}/mysqlctl.sock
+      -db-config-app-uname vt_app
+      -db-config-app-dbname vt_{{ vt_keyspace }}
+      -db-config-app-charset utf8
+      -db-config-dba-uname vt_dba
+      -db-config-dba-dbname vt_{{vt_keyspace}}
+      -db-config-dba-charset utf8
+      -db-config-repl-uname vt_repl
+      -db-config-repl-dbname vt_{{ vt_keyspace }}
+      -db-config-repl-charset utf8
+      -db-config-filtered-uname vt_filtered
+      -db-config-filtered-dbname vt_{{ vt_keyspace }}
+      -db-config-filtered-charset utf8
+      -mysql_port {{ vttablet_mysql_port }}
+      -init_db_sql_file {{ vt_env_vtroot }}/config/init_db.sql" vitess'
+
+  vttablet:
+    image: {{ vt_docker_tag }}
+    network_mode: host
+    hostname: {{ vt_deploy_host }}
+    ports:
+      - "{{ vttablet_port }}:{{ vttablet_port }}"
+    volumes:
+      - "{{ vttablet_syslog_dir }}:/dev/log"
+      - "{{ vttablet_data_dir }}:{{ vt_env_vtdataroot }}"
+    environment:
+      VTROOT: "{{ vt_env_vtroot }}"
+      VTTOP: "{{ vt_env_vttop }}"
+      VTDATAROOT: "{{ vt_env_vtdataroot }}"
+    # TODO: replace 'sleep' by wait for mysql.sock
+    command: >-
+      /bin/sh -c
+      'sleep 5 && mkdir -p {{ vt_env_vtdataroot }}/tmp &&
+      chown -R vitess {{ vt_env_vtroot }} &&
+      su -p -s /bin/bash -c "{{ vt_env_vtroot }}/bin/vttablet
+      {{ vt_env_topology_flags | join(' ')}} -log_dir {{ vt_env_vtdataroot }}/tmp
+      -alsologtostderr
+      -port {{ vttablet_port }}
+      -grpc_port {{ vttablet_grpc_port }}
+      -service_map 'grpc-queryservice,grpc-tabletmanager,grpc-updatestream'
+      -tablet-path {{ vttablet_alias }}
+      -tablet_hostname {{ vt_deploy_host }}
+      -init_keyspace {{ vt_keyspace }}
+      -init_shard {{ vt_shard }}
+      -init_tablet_type {{ vt_tablet_type }}
+      -health_check_interval 5s
+      -mysqlctl_socket {{ vt_env_vtdataroot }}/mysqlctl.sock
+      -db-config-app-uname vt_app
+      -db-config-app-dbname vt_{{ vt_keyspace }}
+      -db-config-app-charset utf8
+      -db-config-dba-uname vt_dba
+      -db-config-dba-dbname vt_{{ vt_keyspace }}
+      -db-config-dba-charset utf8
+      -db-config-repl-uname vt_repl
+      -db-config-repl-dbname vt_{{ vt_keyspace }}
+      -db-config-repl-charset utf8
+      -db-config-filtered-uname vt_filtered
+      -db-config-filtered-dbname vt_{{ vt_keyspace }}
+      -db-config-filtered-charset utf8
+      -enable_semi_sync
+      -enable_replication_reporter
+      -backup_storage_implementation file
+      -file_backup_storage_root {{ vt_env_vtdataroot }}/backups" vitess'
+
+
+      # TODO: orchestorator setting
+      #-orc_api_url http://orchestrator/api
+      #-orc_discover_interval 5m
+

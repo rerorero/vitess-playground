@@ -10,4 +10,10 @@
     - vttablet_alias: "{{ vt_cell }}-{{ item.uid }}"
   with_items: "{{ vtshard_info.tablets }}"
 
-- include: init.yml
+  # TODO: wait for mysql port?
+- name: Wait start up..
+  pause: seconds=30
+
+- include: elect-master.yml
+
+- include: schema.yml
