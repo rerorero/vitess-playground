@@ -1,9 +1,8 @@
 ---
-- name: Reload systemd
-  command: systemctl daemon-reload
-  become: yes
-
 - name: Restart docker
-  service: name=docker state=restarted
+  systemd:
+    name: docker
+    state: restarted
+    daemon_reload: yes
   become: yes
 

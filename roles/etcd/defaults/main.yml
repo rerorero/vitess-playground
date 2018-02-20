@@ -1,5 +1,6 @@
 ---
-etcd_version: v3.1.5
+etcd_version: v3.3.1
 etcd_docker_tag: "quay.io/coreos/etcd:{{ etcd_version }}"
-etcd_data_dir: /var/etcd-data
-etcd_conf_dir: /etc/etcd
+etcd_root: /var/etcd
+etcd_conf_dir: "{{ etcd_root }}/conf"
+etcd_data_dir: "{{ etcd_root }}/data"

@@ -5,9 +5,8 @@
     state: directory
     mode: 0755
   with_items:
-    - "{{ etcd_data_dir }}"
+    - "{{ etcd_root }}"
     - "{{ etcd_conf_dir }}"
-    - "{{ docker_compose_dir }}/etcd"
   become: yes
 
 - name: Put etcd conf
@@ -15,16 +14,17 @@
     src: etcd.yml.j2
     dest: "{{ etcd_conf_dir }}/etcd.yml"
     mode: 0644
+  notify: Restart etcd
   become: yes
 
 - name: Put etcd compose yml
   template:
-    src: etcd-compose.yml.j2
-    dest: "{{ docker_compose_dir }}/etcd/docker-compose.yml"
+    src: docker-compose.yml.j2
+    dest: "{{ etcd_root }}/docker-compose.yml"
     mode: 0644
   become: yes
 
-- name: Compose etcd service up
-  args:
-    chdir: "{{ docker_compose_dir }}/etcd"
-  command: docker-compose up -d
+- name: etcd service up
+  docker_service:
+    project_src: "{{ etcd_root }}"
+    state: present

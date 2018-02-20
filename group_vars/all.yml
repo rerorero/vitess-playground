@@ -1,20 +1,8 @@
 ---
-resolved_ips:
-  192.168.50.11:
-    names: [vitess1]
-  192.168.50.12:
-    names: [vitess2]
-  192.168.50.13:
-    names: [vitess3]
-
 systemd_service_dir: "/lib/systemd/system"
 
 etcd_advertise_port: 2379
 etcd_initial_cluster_hosts: "{{ groups['etcd'] }}"
-
-go_path: "/var/go"
-go_path_env:
-  GOPATH: "{{ go_path }}"
 
 vtctld_web_port: 15000
 vtctld_grpc_port: 15999
@@ -22,8 +10,5 @@ vtctld_grpc_port: 15999
 vtgate_web_port: 15001
 vtgate_grpc_port: 15991
 
-
 vt_dir: /var/vt
 vt_cell: test
-
-docker_compose_dir: /etc/docker-compose

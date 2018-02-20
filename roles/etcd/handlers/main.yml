@@ -1,9 +1,7 @@
 ---
-- name: Reload systemd
-  command: systemctl daemon-reload
-  become: yes
-
 - name: Restart etcd
-  service: name=etcd state=restarted
-  become: yes
+  docker_service:
+    project_src: "{{ etcd_root }}"
+    build: no
+    restarted: yes
 

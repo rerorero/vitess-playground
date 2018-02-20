@@ -1,0 +1,22 @@
+---
+- hosts: all
+  roles:
+    - docker
+
+- hosts: etcd
+  serial: 1
+  roles:
+    - etcd
+
+# - hosts: vtnode
+#   roles:
+#     - vt-common
+#
+# - hosts: manage
+#   roles:
+#     - vtctld
+#     - vtctlclient
+#
+# - hosts: vtgate
+#   roles:
+#     - vtgate

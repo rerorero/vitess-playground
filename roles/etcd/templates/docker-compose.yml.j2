@@ -10,3 +10,4 @@ services:
       - "{{ etcd_data_dir }}:{{ etcd_data_dir }}"
       - "{{ etcd_conf_dir }}:{{ etcd_conf_dir }}"
     command: "etcd --config-file {{ etcd_conf_dir }}/etcd.yml" 
+    restart: always

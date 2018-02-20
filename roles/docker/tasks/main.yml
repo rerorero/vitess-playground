@@ -1,19 +1,4 @@
 ---
-- name: Create docker group
-  group:
-    name: docker
-    gid: "{{ docker_gid }}"
-    state: present
-  become: yes
-
-- name: Create docker user
-  user:
-    name: docker
-    group: docker
-    uid: "{{ docker_uid }}"
-    state: present
-  become: yes
-
 - name: Install packages to allow apt to use a repository over HTTPS
   apt:
     name: "{{ item }}"
@@ -26,7 +11,7 @@
     - lsb-core
   become: yes
 
-- name: Add Docker's official GPG ke
+- name: Add Docker's official GPG key
   apt_key:
     url: "https://download.docker.com/linux/ubuntu/gpg"
     state: present
@@ -53,15 +38,6 @@
     name: "{{ ansible_user }}"
     groups: docker
     append: yes
-  become: yes
-
-- name: Create compose directory
-  file:
-    path: "{{ docker_compose_dir }}"
-    state: directory
-    mode: 0755
-    owner: docker
-    group: docker
   become: yes
 
 - name: Get compose binary
